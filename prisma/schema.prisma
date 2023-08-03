@@ -16,6 +16,7 @@ model User {
   email    String  @unique
   cpf      String  @unique
   tel      String
+  time     Int     
   pontos   Int 
  
 }

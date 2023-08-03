@@ -21,6 +21,7 @@ const { z } = require('zod');
         email,
         cpf,
         tel,
+        time,
         pontos
     } = req.body
 
@@ -33,6 +34,7 @@ const { z } = require('zod');
           email: email,
           cpf: cpf,
           tel:tel,
+          time:time,
           pontos:Number(pontos)
 
         },

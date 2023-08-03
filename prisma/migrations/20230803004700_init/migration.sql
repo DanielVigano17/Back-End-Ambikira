@@ -5,6 +5,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "cpf" TEXT NOT NULL,
     "tel" TEXT NOT NULL,
+    "time" INTEGER NOT NULL,
     "pontos" INTEGER NOT NULL
 );
 
