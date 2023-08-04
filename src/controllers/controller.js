@@ -4,6 +4,8 @@ const { z } = require('zod');
  
  async function users(req,res){
 
+   
+
     const users = await prisma.user.findMany()
 
     if(!users[0]){
@@ -25,6 +27,29 @@ const { z } = require('zod');
         pontos
     } = req.body
 
+    const schema = z.object({
+      name: z.string().min(3).max(50),
+      email: z.string().email(),
+      cpf: z.string().length(11),
+      tel: z.string().length(11),
+      time: z.number().positive(),
+      pontos: z.number().positive().max(15),
+    })
+
+    try{
+      schema.parse({
+         name: name,
+         email: email,
+         cpf: cpf,
+         tel:tel,
+         time:time,
+         pontos:pontos,
+       })
+    }catch(err){
+      console.error(err)
+      return res.status(400).send("Dados inválidos")
+    }
+
    
 
    try{
@@ -35,7 +60,7 @@ const { z } = require('zod');
           cpf: cpf,
           tel:tel,
           time:time,
-          pontos:Number(pontos)
+          pontos:pontos
 
         },
       })
