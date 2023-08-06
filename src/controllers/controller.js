@@ -69,15 +69,48 @@ const { z } = require('zod');
 
    }catch(err){
     console.error(err)
-    return res.status(500).send("Erro ao cadastrar dados do usuário")
+    return res.status(400).send("Erro ao cadastrar dados do usuário")
    }
 
         
  }
 
+ async function verifyUser(req,res){
+
+   const {
+    cpf
+   } =req.body
+
+   const schema = z.string().length(11)
+
+    try{
+      schema.parse(cpf)
+    }catch(err){
+      console.error(err)
+      return res.status(400).send("Dados inválidos")
+    }
+
+  const users = await prisma.user.findUnique({
+    where: {
+      cpf: cpf,
+    }
+  })
+
+
+  if(!users){
+      res.status(200).send("Usuário qualificado para jogar")
+      return 
+  }
+      
+      res.status(400).send("Usuário já cadastrado")
+
+}
+
+
 
 
  module.exports = {
     users,
-    createUser
+    createUser,
+    verifyUser
  }
