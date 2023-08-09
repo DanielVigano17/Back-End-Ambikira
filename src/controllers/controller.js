@@ -1,12 +1,17 @@
 const { PrismaClient } = require('@prisma/client');
+const { cp } = require('fs');
 const prisma = new PrismaClient();
 const { z } = require('zod');
  
  async function users(req,res){
 
-   
-
-    const users = await prisma.user.findMany()
+    const users = await prisma.user.findMany(
+      {
+        orderBy: {
+          pontos: 'desc',
+        }
+      }
+    )
 
     if(!users[0]){
         res.send("Nenhum usuário encontrado")
@@ -18,7 +23,7 @@ const { z } = require('zod');
 
  async function createUser(req,res){
 
-    const {
+    let {
         name,
         email,
         cpf,
@@ -27,13 +32,18 @@ const { z } = require('zod');
         pontos
     } = req.body
 
+    time = Number(time)
+    pontos = Number(pontos)
+    cpf = String(cpf)
+    tel = String(tel)
+
     const schema = z.object({
       name: z.string().min(3).max(50),
       email: z.string().email(),
       cpf: z.string().length(11),
       tel: z.string().length(11),
       time: z.number().positive(),
-      pontos: z.number().positive().max(15),
+      pontos: z.number().positive().max(20),
     })
 
     try{
@@ -77,9 +87,11 @@ const { z } = require('zod');
 
  async function verifyUser(req,res){
 
-   const {
+   let {
     cpf
    } =req.body
+
+   cpf = String(cpf)
 
    const schema = z.string().length(11)
 
