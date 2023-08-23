@@ -7,8 +7,8 @@ const { z } = require('zod');
 
     const users = await prisma.user.findMany(
       {
-        orderBy: {
-          pontos: 'desc',
+        include:{
+          estandes: true
         }
       }
     )
@@ -28,12 +28,14 @@ const { z } = require('zod');
         email,
         cpf,
         tel,
+        estande,
         time,
-        pontos
+        pontos,
     } = req.body
 
     time = Number(time)
     pontos = Number(pontos)
+    estande = String(estande)
     cpf = String(cpf)
     tel = String(tel)
 
@@ -63,18 +65,46 @@ const { z } = require('zod');
    
 
    try{
-    const user = await prisma.user.create({
+
+    const existUser = await prisma.user.findUnique({
+      where: {
+        cpf: cpf,
+      }
+    })
+
+    if(!existUser){
+
+      const user = await prisma.user.create({
+
         data: {
           name: name,
           email: email,
           cpf: cpf,
           tel:tel,
-          time:time,
-          pontos:pontos
+          estandes:{
+            create :{
+              estande: estande,
+              pontos: pontos,
+              time: time
+            }
+          }
 
         },
       })
 
+    }else{
+       
+      const estandes = await prisma.estande.create({
+        data: {
+            estande: estande,
+            pontos: pontos,
+            time: time,
+            autorId: existUser.id
+        }
+      })
+    }
+
+   
       return res.send("Dados cadastrados com sucesso")
 
    }catch(err){
@@ -88,10 +118,12 @@ const { z } = require('zod');
  async function verifyUser(req,res){
 
    let {
-    cpf
+    cpf,
+    estande,
    } =req.body
 
    cpf = String(cpf)
+   estande = String(estande)
 
    const schema = z.string().length(11)
 
@@ -105,13 +137,26 @@ const { z } = require('zod');
   const users = await prisma.user.findUnique({
     where: {
       cpf: cpf,
+    },
+    include:{
+      estandes: {
+        where:{
+          estande: estande
+        }
+      }
     }
+
   })
 
-
   if(!users){
+    res.status(200).send("Usuário qualificado para jogar")
+    return 
+  }else{
+    if(!users.estandes[0]){
       res.status(200).send("Usuário qualificado para jogar")
       return 
+  }
+
   }
       
       res.status(400).send("Usuário já cadastrado")
