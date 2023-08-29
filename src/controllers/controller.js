@@ -2,6 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const { cp } = require('fs');
 const prisma = new PrismaClient();
 const { z } = require('zod');
+
  
  async function users(req,res){
 
@@ -12,6 +13,7 @@ const { z } = require('zod');
         }
       }
     )
+
 
     if(!users[0]){
         res.send("Nenhum usuário encontrado")
@@ -44,8 +46,8 @@ const { z } = require('zod');
       email: z.string().email(),
       cpf: z.string().length(11),
       tel: z.string().length(11),
-      time: z.number().positive(),
-      pontos: z.number().positive().max(20),
+      time: z.number(),
+      pontos: z.number().max(6),
     })
 
     try{
@@ -119,10 +121,12 @@ const { z } = require('zod');
 
    let {
     cpf,
+    email,
     estande,
    } =req.body
 
    cpf = String(cpf)
+   email = String(email)
    estande = String(estande)
 
    const schema = z.string().length(11)
@@ -134,7 +138,7 @@ const { z } = require('zod');
       return res.status(400).send("Dados inválidos")
     }
 
-  const users = await prisma.user.findUnique({
+  let users = await prisma.user.findUnique({
     where: {
       cpf: cpf,
     },
@@ -149,8 +153,26 @@ const { z } = require('zod');
   })
 
   if(!users){
-    res.status(200).send("Usuário qualificado para jogar")
-    return 
+
+    users = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      include:{
+        estandes: {
+          where:{
+            estande: estande
+          }
+        }
+      }
+
+    })
+
+    if(!users){
+      res.status(200).send("Usuário qualificado para jogar")
+      return 
+    }
+
   }else{
     if(!users.estandes[0]){
       res.status(200).send("Usuário qualificado para jogar")
@@ -169,5 +191,5 @@ const { z } = require('zod');
  module.exports = {
     users,
     createUser,
-    verifyUser
+    verifyUser,
  }
